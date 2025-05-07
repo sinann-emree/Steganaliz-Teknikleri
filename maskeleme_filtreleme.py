@@ -2,13 +2,11 @@ import cv2
 import numpy as np
 
 def embed_message_masking_filtering(image_path, message, output_path):
-    # Görseli yükle
     img = cv2.imread(image_path)
     if img is None:
         print("Görsel yüklenemedi. Dosya adını ve uzantısını kontrol edin.")
         return
 
-    # Mesajı ikili (binary) forma çevir
     binary_message = ''.join(format(ord(char), '08b') for char in message)
     msg_len = len(binary_message)
 
@@ -20,25 +18,21 @@ def embed_message_masking_filtering(image_path, message, output_path):
         return
 
     idx = 0
-    mask = np.uint8(~1)  # uint8'e uygun maske (254)
+    mask = np.uint8(~1)  
 
-    # Kenar tespiti için gri görsel
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 100, 200)  # kenar maskesi (beyaz kenarlar, siyah zemin)
+    edges = cv2.Canny(gray, 100, 200)  
 
-    # Sadece kenar bölgelerine gizleme
     for i in range(height):
         for j in range(width):
-            if edges[i, j] != 0:  # sadece kenar bölgeleri
-                for k in range(3):  # BGR kanalları
+            if edges[i, j] != 0:  
+                for k in range(3):  
                     if idx < msg_len:
                         bit = int(binary_message[idx])
                         img[i, j, k] = (img[i, j, k] & mask) | bit
                         idx += 1
 
-    # Görseli kaydet
     cv2.imwrite(output_path, img)
     print("Mesaj başarıyla gizlendi:", output_path)
 
-# Örnek kullanım
 embed_message_masking_filtering("ornek.jpeg", "Merhaba bu kenarlarda!", "gizli_mesaj_maskeli.jpg")
